@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+    <style>
+    #p1 {
+        padding-left: 70px;
+        float: left;
+    }
+    #p2 {
+        padding-right: 200px;
+        float: right;
+    }
+    </style>
+    <title>PS Purchase Tracker</title>
+  </head>
+  <body>
+    
+    <h1 class="text-center">PS Purchase Tracker</h1>
+    <br>
+    <h6 id="p1">A graph showing all <b>digital</b> transactions made between April 2015 and the present day.</p>
+    <h6 id="p2">Hover over a data point to see information about each purchase</p>
+    <h6 class="text-center">This website will update automatically with each new purchase.</p>
+    
+    <canvas id="myChart" width="2000" height="800"></canvas>
+    
+    <script>
+        // Global parameters:
+        // do not resize the chart canvas when its container does (keep at 600x400px)
+        Chart.defaults.global.responsive = false;
+        
+        var titles = [{% for purchase in purchases %}
+                      "{{purchase['title']}}",
+                     {% endfor %}]
+                     
+        var types = [{% for purchase in purchases %}
+                      "{{purchase['type']}}",
+                     {% endfor %}]
+                     
+        var prices = [{% for purchase in purchases %}
+                      "{{purchase['price'][1:]}}",
+                     {% endfor %}]
+                     
+        var dates =  [{% for purchase in purchases %}
+                      "{{purchase['date']}}",
+                     {% endfor %}]
+        
+        // define the chart data
+        var chartData = {
+            labels: dates,
+            datasets: [{
+                data: prices,
+                label: 'Purchases',
+                backgroundColor: "rgba(75,192,192,0.4)",
+                pointBackgroundColor: "rgba(75,192,192)",
+                pointRadius: 4,
+                pointHoverRadius: 10,
+                pointHoverBackgroundColor: "rgba(75,192,192,1)"
+            }]
+        }
+        
+        
+        
+        var options = {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        callback: function(value, index, values) {
+                            return '€' + value;
+                        },
+                        fontSize: 16
+                    }
+                }],
+                xAxes: [{
+                    ticks: {
+                        callback: function(value, index, values) {
+                            return value.substring(0,6) + value.substring(8,10);
+                        },
+                        autoSkip: true,
+                        maxTicksLimit: 20,
+                        fontSize: 16
+                    }
+                }]
+            },
+            tooltips: {
+                enabled: true,
+                mode: 'single',
+                titleFontSize: 16,
+                bodyFontSize: 16,
+                custom: function(tooltip){
+                    tooltip.displayColors = false;
+                },
+                callbacks: {
+                    label: function(tooltipItems, data) { 
+                       var index = tooltipItems.index
+                       var multistringText = ['€'+tooltipItems.yLabel];
+                           multistringText.push(types[index]);
+                           multistringText.push(dates[index]);
+                       return multistringText;
+                    },
+                    title: function([tooltipItems], data){
+                        var index = tooltipItems.index
+                        return titles[index]
+                    }
+                }
+            }
+        }
+        
+        // get chart canvas
+        var ctx = document.getElementById("myChart").getContext("2d");
+        
+        // create the chart using the chart canvas
+        var myChart = new Chart(ctx, {
+          type: 'line',
+          data: chartData,
+          options: options
+        });
+
+    </script>
+    
+  </body>
+</html>
